@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NPS Report Generator — Reliance Digital</title>
+<title>NPS Report Generator - Reliance Digital</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:#F4F7FB;color:#1E2D40;min-height:100vh}
@@ -42,111 +43,133 @@ h1{font-size:26px;font-weight:500;color:#0F2044;margin-bottom:8px}
 .topbar-btns{display:flex;gap:8px}
 .btn-export{padding:7px 14px;border-radius:7px;border:1px solid #2A4A70;background:transparent;color:#fff;font-size:12px;cursor:pointer}
 .btn-new{padding:7px 14px;border-radius:7px;border:none;background:#1D9E75;color:#fff;font-size:12px;cursor:pointer}
-.tabbar{background:#fff;border-bottom:1px solid #DEE4EE;padding:0 24px;display:flex}
-.tab{padding:12px 18px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:13px;cursor:pointer;color:#5A6E85}
+.tabbar{background:#fff;border-bottom:1px solid #DEE4EE;padding:0 24px;display:flex;overflow-x:auto}
+.tab{padding:12px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;cursor:pointer;color:#5A6E85;white-space:nowrap}
 .tab.active{border-bottom-color:#0F2044;color:#0F2044;font-weight:500}
-.content{max-width:1100px;margin:0 auto;padding:22px 24px}
-.score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.content{max-width:1100px;margin:0 auto;padding:20px 24px}
+.slide-header{margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #DEE4EE;display:flex;justify-content:space-between;align-items:flex-start}
+.slide-title{font-size:18px;font-weight:500;color:#0F2044}
+.slide-owner{font-size:11px;color:#5A6E85}
+.sc3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
 .score-card{background:#fff;border:1px solid #DEE4EE;border-radius:12px;overflow:hidden}
-.sc-hdr{padding:9px 14px;font-size:11px;border-bottom:1px solid #DEE4EE}
-.sc-body{padding:14px;text-align:center}
-.sc-nps{font-size:38px;font-weight:500;line-height:1}
-.sc-meta{font-size:11px;color:#5A6E85;margin-top:6px}
+.sc-hdr{padding:10px 16px;font-size:13px;font-weight:500;border-bottom:1px solid #DEE4EE}
+.sc-body{padding:16px;text-align:center}
+.sc-nps{font-size:44px;font-weight:500;line-height:1}
+.sc-lbl{font-size:11px;color:#8A9BB0;margin-top:4px}
 .sc-bar{height:5px;display:flex}
-.sc-row{display:flex;justify-content:space-between;padding:7px 14px;border-top:.5px solid #DEE4EE;font-size:12px}
-.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
-.section-h{font-size:14px;font-weight:500;color:#0F2044;margin-bottom:12px}
-.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:500}
-.panel{background:#fff;border:1px solid #DEE4EE;border-radius:12px;overflow:hidden;margin-bottom:16px}
-.panel-head{padding:10px 14px;font-size:13px;font-weight:500;border-bottom:1px solid #DEE4EE}
-.vtable{width:100%;border-collapse:collapse;font-size:12px}
-.vtable th{padding:7px 12px;background:#0F2044;color:#fff;font-weight:500;text-align:left}
-.vtable th.c{text-align:center}
-.vtable td{padding:7px 12px;border-bottom:.5px solid #DEE4EE}
-.vtable td.c{text-align:center}
-.vtable tr:last-child td{border-bottom:none}
-.vendor-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
-.zt{width:100%;border-collapse:collapse;font-size:12px}
-.zt th{padding:8px 14px;background:#0F2044;color:#fff;font-weight:500;text-align:center}
-.zt th:first-child{text-align:left}
-.zt td{padding:8px 14px;border-bottom:.5px solid #DEE4EE;text-align:center}
-.zt td:first-child{text-align:left;font-weight:500;color:#0F2044}
-.zt tr:nth-child(even) td{background:#F4F7FB}
-.issue-wrap{padding:20px}
-.issue-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.issue-lbl{font-size:12px;color:#1E2D40;width:220px;flex-shrink:0}
-.issue-bg{flex:1;background:#F4F7FB;border-radius:4px;height:18px;overflow:hidden}
-.issue-fill{height:100%;border-radius:4px}
-.issue-cnt{font-size:12px;font-weight:500;color:#1E2D40;min-width:32px;text-align:right}
-.alert{background:#FCEBEB;border:1px solid #D63B3B;border-radius:8px;padding:10px 14px;font-size:12px;color:#791F1F;margin-bottom:16px}
+.sc-row{display:flex;justify-content:space-between;padding:8px 16px;border-top:.5px solid #DEE4EE;font-size:12px}
+.tbl-wrap{background:#fff;border:1px solid #DEE4EE;border-radius:12px;overflow:hidden;margin-bottom:16px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:9px 14px;background:#0F2044;color:#fff;font-weight:500;text-align:left}
+.tbl th.c{text-align:center}
+.tbl td{padding:9px 14px;border-bottom:.5px solid #DEE4EE}
+.tbl td.c{text-align:center}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:nth-child(even) td{background:#F4F7FB}
+.src{font-size:10px;color:#A0B0C4;margin-top:16px;padding-top:10px;border-top:.5px solid #DEE4EE}
+.def-line{font-size:12px;color:#3A4F66;line-height:1.6;margin-bottom:4px}
+.def-line b{color:#0F2044}
+.mini4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.mini-card{background:#fff;border:1px solid #DEE4EE;border-radius:10px;padding:12px 14px}
+.mini-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+.mini-lbl{font-size:11px;color:#5A6E85;margin-bottom:4px}
+.mini-nps{font-size:28px;font-weight:500;line-height:1}
+.mini-sub{font-size:10px;color:#8A9BB0;margin-top:4px}
+.mini-line{height:2px;border-radius:1px;margin-top:10px}
+.chart-wrap{background:#fff;border:1px solid #DEE4EE;border-radius:12px;padding:18px;margin-bottom:16px}
+.chart-legend{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#5A6E85}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.findings-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.cat-col{border:1px solid #DEE4EE;border-radius:10px;overflow:hidden}
+.cat-hdr{padding:10px 12px;font-size:12px;font-weight:500;text-align:center}
+.cat-item{padding:10px 12px;font-size:11px;color:#1E2D40;line-height:1.5;border-top:.5px solid #DEE4EE;background:#fff}
+.cat-item:nth-child(even){background:#F7F9FC}
+.vendor2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.vtbl-wrap{background:#fff;border:1px solid #DEE4EE;border-radius:10px;overflow:hidden}
+.vtbl-hdr{padding:9px 14px;font-size:12px;font-weight:500;border-bottom:1px solid #DEE4EE}
+.vtbl{width:100%;border-collapse:collapse;font-size:11px}
+.vtbl th{padding:7px 10px;background:#0F2044;color:#fff;font-weight:500;text-align:left}
+.vtbl th.c{text-align:center}
+.vtbl td{padding:7px 10px;border-bottom:.5px solid #DEE4EE}
+.vtbl td.c{text-align:center}
+.vtbl tr:last-child td{border-bottom:none}
+.vtbl tr:nth-child(even) td{background:#F4F7FB}
+.pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.alert-bar{background:#FCEBEB;border:1px solid #D63B3B;border-radius:8px;padding:10px 14px;font-size:12px;color:#791F1F;margin-bottom:16px;font-weight:500}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
-@media print{.topbar-btns,.tabbar{display:none!important}.tab-panel{display:block!important}}
+@media print{.topbar-btns,.tabbar{display:none!important}.tab-panel{display:block!important}.dashboard{background:#fff}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head>
 <body>
 <div class="upload-screen" id="uploadScreen">
   <div class="upload-inner">
-    <div class="badge">Reliance Digital · NPS Analytics</div>
+    <div class="badge">Reliance Digital - NPS Analytics</div>
     <h1>NPS Report Generator</h1>
-    <p class="subtitle">Upload your three survey CSV exports to instantly generate a full NPS dashboard.</p>
+    <p class="subtitle">Upload your three survey CSV exports to generate a full 6-slide NPS dashboard matching your management report format.</p>
     <div class="card">
       <div class="card-title">Upload survey files</div>
       <div class="drop-grid">
-        <div class="drop-zone" id="dz-inst" style="--ac:#1D9E75;--ac-bg:#EAF3DE" onclick="document.getElementById('fi-inst').click()" ondragover="dzDrag(event,'inst')" ondragleave="dzLeave('inst')" ondrop="dzDrop(event,'inst')">
-          <input type="file" id="fi-inst" accept=".csv" style="display:none" onchange="fileChosen('inst',this)">
-          <div class="drop-icon" id="di-inst">↑</div>
+        <div class="drop-zone" id="dz-inst" style="--ac:#1D9E75;--ac-bg:#EAF3DE" onclick="document.getElementById('fi-inst').click()" ondragover="ev(event,'inst')" ondragleave="el('inst')" ondrop="ed(event,'inst')">
+          <input type="file" id="fi-inst" accept=".csv" style="display:none" onchange="fc('inst',this)">
+          <div class="drop-icon" id="di-inst">up</div>
           <div class="drop-label" id="dl-inst">Installation CSV</div>
           <div class="drop-hint" id="dh-inst">Drop .csv or click</div>
         </div>
-        <div class="drop-zone" id="dz-repair" style="--ac:#E07B00;--ac-bg:#FAEEDA" onclick="document.getElementById('fi-repair').click()" ondragover="dzDrag(event,'repair')" ondragleave="dzLeave('repair')" ondrop="dzDrop(event,'repair')">
-          <input type="file" id="fi-repair" accept=".csv" style="display:none" onchange="fileChosen('repair',this)">
-          <div class="drop-icon" id="di-repair">↑</div>
+        <div class="drop-zone" id="dz-repair" style="--ac:#E07B00;--ac-bg:#FAEEDA" onclick="document.getElementById('fi-repair').click()" ondragover="ev(event,'repair')" ondragleave="el('repair')" ondrop="ed(event,'repair')">
+          <input type="file" id="fi-repair" accept=".csv" style="display:none" onchange="fc('repair',this)">
+          <div class="drop-icon" id="di-repair">up</div>
           <div class="drop-label" id="dl-repair">Repair CSV</div>
           <div class="drop-hint" id="dh-repair">Drop .csv or click</div>
         </div>
-        <div class="drop-zone" id="dz-service" style="--ac:#E07B00;--ac-bg:#FAEEDA" onclick="document.getElementById('fi-service').click()" ondragover="dzDrag(event,'service')" ondragleave="dzLeave('service')" ondrop="dzDrop(event,'service')">
-          <input type="file" id="fi-service" accept=".csv" style="display:none" onchange="fileChosen('service',this)">
-          <div class="drop-icon" id="di-service">↑</div>
+        <div class="drop-zone" id="dz-service" style="--ac:#E07B00;--ac-bg:#FAEEDA" onclick="document.getElementById('fi-service').click()" ondragover="ev(event,'service')" ondragleave="el('service')" ondrop="ed(event,'service')">
+          <input type="file" id="fi-service" accept=".csv" style="display:none" onchange="fc('service',this)">
+          <div class="drop-icon" id="di-service">up</div>
           <div class="drop-label" id="dl-service">Service CSV</div>
           <div class="drop-hint" id="dh-service">Drop .csv or click</div>
         </div>
       </div>
       <div class="error-box" id="errorBox"></div>
-      <button class="btn-generate" id="generateBtn" onclick="analyse()">Generate NPS Dashboard →</button>
+      <button class="btn-generate" id="generateBtn" onclick="analyse()">Generate NPS Dashboard</button>
     </div>
     <div class="features">
-      <div class="feat-head">What this generates</div>
+      <div class="feat-head">6 slides - matching your management report format</div>
       <div class="feat-grid">
-        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">NPS scorecards</div><div class="feat-d">Delivery, Installation, Repair, Service</div></div></div>
-        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Zone breakdown</div><div class="feat-d">All 4 touchpoints across every zone</div></div></div>
-        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Vendor outliers</div><div class="feat-d">Top and bottom 5 for Repair and Service</div></div></div>
-        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Issue frequency</div><div class="feat-d">Top detractor complaints from Repair</div></div></div>
+        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Slide 1: CX Overview</div><div class="feat-d">NPS cards + response table</div></div></div>
+        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Slide 2: NPS Scorecards</div><div class="feat-d">P/Pa/D breakdown</div></div></div>
+        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Slide 3: Zone Analysis</div><div class="feat-d">Chart + table by zone</div></div></div>
+        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Slide 4: What went well</div><div class="feat-d">5-column category grid</div></div></div>
+        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Slide 5: Needs improvement</div><div class="feat-d">5-column category grid</div></div></div>
+        <div class="feat-item"><div class="feat-dot"></div><div><div class="feat-t">Slide 6: Vendor Outliers</div><div class="feat-d">Top and bottom 5</div></div></div>
       </div>
     </div>
-    <p class="note">Data processed entirely in your browser. Nothing is sent to any server.</p>
+    <p class="note">Data processed entirely in your browser. Nothing sent to any server.</p>
   </div>
 </div>
 <div class="dashboard" id="dashboard">
   <div class="topbar">
-    <div><div class="topbar-title">NPS Performance Dashboard</div><div class="topbar-sub" id="genTime">Reliance Digital</div></div>
+    <div><div class="topbar-title">NPS Performance Dashboard - Reliance Digital</div><div class="topbar-sub" id="genTime"></div></div>
     <div class="topbar-btns">
       <button class="btn-export" onclick="window.print()">Export PDF</button>
       <button class="btn-new" onclick="resetApp()">New Report</button>
     </div>
   </div>
   <div class="tabbar">
-    <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
-    <button class="tab" onclick="switchTab('zones',this)">Zone Analysis</button>
-    <button class="tab" onclick="switchTab('vendors',this)">Vendor Outliers</button>
-    <button class="tab" onclick="switchTab('issues',this)">Issue Breakdown</button>
+    <button class="tab active" onclick="st('s1',this)">1. CX Overview</button>
+    <button class="tab" onclick="st('s2',this)">2. NPS Scorecards</button>
+    <button class="tab" onclick="st('s3',this)">3. Zone Analysis</button>
+    <button class="tab" onclick="st('s4',this)">4. What Went Well</button>
+    <button class="tab" onclick="st('s5',this)">5. Needs Improvement</button>
+    <button class="tab" onclick="st('s6',this)">6. Vendor Outliers</button>
   </div>
   <div class="content">
-    <div class="tab-panel active" id="tp-overview"></div>
-    <div class="tab-panel" id="tp-zones"></div>
-    <div class="tab-panel" id="tp-vendors"></div>
-    <div class="tab-panel" id="tp-issues"></div>
-    <p style="text-align:center;font-size:11px;color:#A0B0C4;margin-top:28px">Highly Confidential - Management Review</p>
+    <div class="tab-panel active" id="s1"></div>
+    <div class="tab-panel" id="s2"></div>
+    <div class="tab-panel" id="s3"></div>
+    <div class="tab-panel" id="s4"></div>
+    <div class="tab-panel" id="s5"></div>
+    <div class="tab-panel" id="s6"></div>
   </div>
 </div>
 <script>
@@ -155,63 +178,72 @@ const DQ="Please rate your Delivery Experience on a scale of 0 to 10, 10 being t
 const IQ="Please rate your installation experience on a scale of 0 to 10, 10 being the highest.";
 const ZONES=["EAST","SOUTH-3","SOUTH-1","SOUTH-2","NORTH-2","CENTRAL","WEST","NORTH-1"];
 const files={inst:null,repair:null,service:null};
+let chartInst=null;
 function exScore(v){if(!v||!String(v).trim())return null;const m=String(v).match(/\((\d+)\)/);if(m)return+m[1];const n=parseFloat(v);return isNaN(n)?null:Math.round(n);}
 function calcNPS(sc){const v=sc.filter(s=>s!==null);if(!v.length)return null;const p=v.filter(s=>s>=9).length,pa=v.filter(s=>s>=7&&s<=8).length,d=v.filter(s=>s<=6).length,t=v.length;return{nps:Math.round((p-d)/t*100),p,pa,d,t,pP:Math.round(p/t*100),paP:Math.round(pa/t*100),dP:Math.round(d/t*100)};}
 function zoneNPS(rows,col){const m={};rows.forEach(r=>{const z=(r["Group Zones"]||"").trim(),s=exScore(r[col]);if(z&&s!==null){if(!m[z])m[z]=[];m[z].push(s);}});const res={};Object.entries(m).forEach(([z,sc])=>{const p=sc.filter(s=>s>=9).length,d=sc.filter(s=>s<=6).length;res[z]=Math.round((p-d)/sc.length*100);});return res;}
-function vendors(rows,minN=10){const m={};rows.forEach(r=>{const v=(r["Touchpoint name"]||"").trim(),z=(r["Group Zones"]||"").trim(),s=exScore(r[PQ]);if(v&&s!==null){if(!m[v])m[v]={s:[],z};m[v].s.push(s);}});return Object.entries(m).filter(([,{s}])=>s.length>=minN).map(([vn,{s,z}])=>{const p=s.filter(x=>x>=9).length,d=s.filter(x=>x<=6).length;return{v:vn,z,n:s.length,nps:Math.round((p-d)/s.length*100)};}).sort((a,b)=>a.nps-b.nps);}
-function issues(rows){if(!rows.length)return[];const cols=Object.keys(rows[0]).filter(k=>k.includes("Oops")&&k.toLowerCase().includes("wrong"));const cnt={};rows.forEach(r=>{const s=exScore(r[PQ]);if(s===null||s>6)return;cols.forEach(c=>{const v=(r[c]||"").trim();if(v&&v.toLowerCase()!=="nan"){const l=c.match(/\(([^)]+)\)/)?.[1]||c;cnt[l]=(cnt[l]||0)+1;}});});return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([l,n])=>({l,n}));}
+function vendorNPS(rows){const m={};rows.forEach(r=>{const v=(r["Touchpoint name"]||"").trim(),z=(r["Group Zones"]||"").trim(),s=exScore(r[PQ]);if(v&&s!==null){if(!m[v])m[v]={s:[],z};m[v].s.push(s);}});return Object.entries(m).filter(([,{s}])=>s.length>=10).map(([vn,{s,z}])=>{const p=s.filter(x=>x>=9).length,d=s.filter(x=>x<=6).length;return{v:vn,z,n:s.length,nps:Math.round((p-d)/s.length*100)};}).sort((a,b)=>a.nps-b.nps);}
 function parseCSV(f){return new Promise((res,rej)=>{Papa.parse(f,{header:false,skipEmptyLines:true,complete:({data})=>{const h=data[1];const rows=data.slice(2).map(row=>{const o={};h.forEach((k,i)=>{if(k)o[k]=row[i]||"";});return o;});res(rows);},error:rej});});}
 function nC(n){return n===null?"#8A9BB0":n>=60?"#1D9E75":n>=20?"#E07B00":"#D63B3B";}
 function nB(n){return n===null?"#F4F7FB":n>=60?"#EAF3DE":n>=20?"#FAEEDA":"#FCEBEB";}
 function nT(n){return n===null?"#5A6E85":n>=60?"#27500A":n>=20?"#633806":"#791F1F";}
 function sg(n){return n>=0?"+":"";}
-function pill(n){return '<span class="pill" style="background:'+nB(n)+';color:'+nT(n)+'">'+sg(n)+n+'</span>';}
-function dzDrag(e,k){e.preventDefault();document.getElementById("dz-"+k).style.borderColor="var(--ac)";}
-function dzLeave(k){if(!files[k])document.getElementById("dz-"+k).style.borderColor="#DEE4EE";}
-function dzDrop(e,k){e.preventDefault();const f=e.dataTransfer.files[0];if(f&&f.name.endsWith(".csv")){files[k]=f;updateDZ(k);}}
-function fileChosen(k,inp){if(inp.files[0]){files[k]=inp.files[0];updateDZ(k);}}
-function updateDZ(k){const f=files[k];if(!f)return;document.getElementById("dz-"+k).classList.add("ready");document.getElementById("di-"+k).textContent="✓";document.getElementById("dl-"+k).textContent=f.name;document.getElementById("dh-"+k).textContent=(f.size/1024).toFixed(1)+" KB";}
-function showError(msg){const b=document.getElementById("errorBox");b.textContent=msg;b.style.display="block";}
-function hideError(){document.getElementById("errorBox").style.display="none";}
+function pill(n){return'<span class="pill" style="background:'+nB(n)+';color:'+nT(n)+'">'+sg(n)+n+'</span>';}
+function ev(e,k){e.preventDefault();document.getElementById("dz-"+k).style.borderColor="var(--ac)";}
+function el(k){if(!files[k])document.getElementById("dz-"+k).style.borderColor="#DEE4EE";}
+function ed(e,k){e.preventDefault();const f=e.dataTransfer.files[0];if(f&&f.name.endsWith(".csv")){files[k]=f;udz(k);}}
+function fc(k,i){if(i.files[0]){files[k]=i.files[0];udz(k);}}
+function udz(k){const f=files[k];if(!f)return;document.getElementById("dz-"+k).classList.add("ready");document.getElementById("di-"+k).textContent="OK";document.getElementById("dl-"+k).textContent=f.name;document.getElementById("dh-"+k).textContent=(f.size/1024).toFixed(1)+" KB";}
+function showErr(m){const b=document.getElementById("errorBox");b.textContent=m;b.style.display="block";}
+function hideErr(){document.getElementById("errorBox").style.display="none";}
 async function analyse(){
-  if(!files.inst||!files.repair||!files.service){showError("Please upload all three CSV files.");return;}
-  hideError();
-  const btn=document.getElementById("generateBtn");btn.disabled=true;btn.textContent="Analysing data...";
+  if(!files.inst||!files.repair||!files.service){showErr("Please upload all three CSV files.");return;}
+  hideErr();
+  const btn=document.getElementById("generateBtn");btn.disabled=true;btn.textContent="Analysing...";
   try{
     const[iR,rR,sR]=await Promise.all([parseCSV(files.inst),parseCSV(files.repair),parseCSV(files.service)]);
-    const iP=calcNPS(iR.map(r=>exScore(r[PQ]))),del=calcNPS(iR.map(r=>exScore(r[DQ]))),ins=calcNPS(iR.map(r=>exScore(r[IQ])));
-    const rep=calcNPS(rR.map(r=>exScore(r[PQ]))),svc=calcNPS(sR.map(r=>exScore(r[PQ])));
+    const iP=calcNPS(iR.map(r=>exScore(r[PQ])));
+    const del=calcNPS(iR.map(r=>exScore(r[DQ])));
+    const ins=calcNPS(iR.map(r=>exScore(r[IQ])));
+    const rep=calcNPS(rR.map(r=>exScore(r[PQ])));
+    const svc=calcNPS(sR.map(r=>exScore(r[PQ])));
     const dZ=zoneNPS(iR,DQ),iZ=zoneNPS(iR,IQ),rZ=zoneNPS(rR,PQ),sZ=zoneNPS(sR,PQ);
     const zData=ZONES.filter(z=>dZ[z]!==undefined||rZ[z]!==undefined).map(z=>({z,d:dZ[z]??null,i:iZ[z]??null,r:rZ[z]??null,s:sZ[z]??null}));
-    const rV=vendors(rR),sV=vendors(sR),iss=issues(rR);
-    document.getElementById("genTime").textContent="Reliance Digital - Generated "+new Date().toLocaleString("en-IN");
-    buildDashboard({del,ins,iP,rep,svc,zData,rV,sV,iss});
+    const rV=vendorNPS(rR),sV=vendorNPS(sR);
+    document.getElementById("genTime").textContent="Generated "+new Date().toLocaleString("en-IN")+" - Highly Confidential";
+    buildAll({iP,del,ins,rep,svc,zData,rV,sV});
     document.getElementById("uploadScreen").style.display="none";
     document.getElementById("dashboard").style.display="block";
-  }catch(e){showError("Error: "+e.message);}
-  btn.disabled=false;btn.textContent="Generate NPS Dashboard ->";
+  }catch(e){showErr("Error: "+e.message);}
+  btn.disabled=false;btn.textContent="Generate NPS Dashboard";
 }
-function resetApp(){document.getElementById("dashboard").style.display="none";document.getElementById("uploadScreen").style.display="flex";Object.keys(files).forEach(k=>{files[k]=null;document.getElementById("dz-"+k).classList.remove("ready");document.getElementById("di-"+k).textContent="↑";document.getElementById("dl-"+k).textContent=k==="inst"?"Installation CSV":k==="repair"?"Repair CSV":"Service CSV";document.getElementById("dh-"+k).textContent="Drop .csv or click";});}
-function switchTab(id,btn){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));document.getElementById("tp-"+id).classList.add("active");}
-function scoreCard(lbl,st){
-  if(!st)return '<div class="score-card"><div class="sc-hdr" style="background:#F4F7FB;color:#5A6E85">'+lbl+'</div><div class="sc-body"><div class="sc-nps" style="color:#DEE4EE">-</div></div></div>';
+function resetApp(){if(chartInst){chartInst.destroy();chartInst=null;}document.getElementById("dashboard").style.display="none";document.getElementById("uploadScreen").style.display="flex";Object.keys(files).forEach(k=>{files[k]=null;document.getElementById("dz-"+k).classList.remove("ready");document.getElementById("di-"+k).textContent="up";document.getElementById("dl-"+k).textContent=k==="inst"?"Installation CSV":k==="repair"?"Repair CSV":"Service CSV";document.getElementById("dh-"+k).textContent="Drop .csv or click";});}
+function st(id,btn){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");if(id==="s3"){setTimeout(buildChart,100);}}
+function sc(lbl,st,hBg,hT){
+  if(!st)return'<div class="score-card"><div class="sc-hdr">'+lbl+'</div><div class="sc-body"><div class="sc-nps" style="color:#DEE4EE">-</div></div></div>';
   const{nps,p,pa,d,t,pP,paP,dP}=st;
-  return '<div class="score-card"><div class="sc-hdr" style="background:'+nB(nps)+';color:'+nT(nps)+'">'+lbl+'</div><div class="sc-body"><div class="sc-nps" style="color:'+nC(nps)+'">'+sg(nps)+nps+'</div><div class="sc-meta">'+t.toLocaleString()+' responses - '+pP+'% promoters</div></div><div class="sc-bar"><div style="width:'+pP+'%;background:#1D9E75"></div><div style="width:'+paP+'%;background:#8A9BB0"></div><div style="width:'+dP+'%;background:#D63B3B"></div></div><div class="sc-row" style="background:#EAF3DE"><span style="color:#27500A">Promoters</span><span style="color:#27500A;font-weight:500">'+p.toLocaleString()+' ('+pP+'%)</span></div><div class="sc-row"><span style="color:#5A6E85">Passives</span><span style="color:#5A6E85">'+pa.toLocaleString()+' ('+paP+'%)</span></div><div class="sc-row" style="background:#FCEBEB"><span style="color:#791F1F">Detractors</span><span style="color:#791F1F;font-weight:500">'+d.toLocaleString()+' ('+dP+'%)</span></div></div>';}
-function vendorTable(title,vlist,isGood){
-  const list=isGood?[...vlist].reverse().slice(0,5):vlist.slice(0,5);
-  const hBg=isGood?"#EAF3DE":"#FCEBEB",hC=isGood?"#27500A":"#791F1F";
-  if(!list.length)return '<div class="panel"><div class="panel-head" style="background:'+hBg+';color:'+hC+'">'+title+'</div><div style="padding:14px;font-size:12px;color:#5A6E85">Not enough data.</div></div>';
-  let rows='';list.forEach((v,i)=>{rows+='<tr style="background:'+(i%2===0?"#fff":"#F4F7FB")+'"><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+v.v+'</td><td class="c"><span class="pill" style="background:'+(v.nps<0?"#FCEBEB":"#EAF3DE")+';color:'+(v.nps<0?"#791F1F":"#27500A")+';font-size:11px">'+v.z+'</span></td><td class="c" style="color:#5A6E85">'+v.n+'</td><td class="c">'+pill(v.nps)+'</td></tr>';});
-  return '<div class="panel"><div class="panel-head" style="background:'+hBg+';color:'+hC+'">'+title+'</div><table class="vtable"><thead><tr><th>Vendor</th><th class="c">Zone</th><th class="c">n</th><th class="c">NPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';}
-function buildDashboard(d){
-  document.getElementById("tp-overview").innerHTML='<div class="score-grid">'+scoreCard("Delivery NPS",d.del)+scoreCard("Installation NPS",d.ins)+scoreCard("Repair NPS",d.rep)+scoreCard("Service NPS",d.svc)+'</div><div class="section-h">Detailed scorecards</div><div class="detail-grid">'+scoreCard("Installation",d.iP)+scoreCard("Repair",d.rep)+scoreCard("Service",d.svc)+'</div>';
-  const cH=["#378ADD","#1D9E75","#028090","#E07B00"];
-  let ztRows='';d.zData.forEach(z=>{let cells='';[z.d,z.i,z.r,z.s].forEach(v=>{cells+='<td>'+(v!==null?pill(v):'<span style="color:#DEE4EE">-</span>')+'</td>';});ztRows+='<tr><td>'+z.z+'</td>'+cells+'</tr>';});
-  document.getElementById("tp-zones").innerHTML='<div class="panel"><div style="padding:16px 18px"><table class="zt"><thead><tr><th>Zone</th>'+["Delivery","Installation","Repair","Service"].map((h,i)=>'<th style="background:'+cH[i]+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+ztRows+'</tbody></table></div></div>';
-  document.getElementById("tp-vendors").innerHTML='<div class="alert">Vendors with fewer than 10 responses excluded.</div><div class="section-h">Repair vendors</div><div class="vendor-grid">'+vendorTable("Bottom 5 - Repair",d.rV,false)+vendorTable("Top 5 - Repair",d.rV,true)+'</div><div class="section-h">Service vendors</div><div class="vendor-grid">'+vendorTable("Bottom 5 - Service",d.sV,false)+vendorTable("Top 5 - Service",d.sV,true)+'</div>';
-  const maxN=Math.max(...d.iss.map(i=>i.n),1);
-  let issRows=d.iss.length?d.iss.map(({l,n})=>'<div class="issue-row"><div class="issue-lbl">'+l+'</div><div class="issue-bg"><div class="issue-fill" style="width:'+Math.round(n/maxN*100)+'%;background:'+(n>=maxN*.7?"#D63B3B":n>=maxN*.4?"#E07B00":"#378ADD")+'"></div></div><div class="issue-cnt">'+n+'</div></div>').join(''):'<p style="color:#5A6E85;font-size:13px">No issue data found.</p>';
-  document.getElementById("tp-issues").innerHTML='<div class="panel"><div class="issue-wrap"><div class="section-h">Repair detractor issues</div><p style="font-size:12px;color:#5A6E85;margin-bottom:16px">Issues flagged by customers scoring 0-6.</p>'+issRows+'</div></div>';}
+  return'<div class="score-card"><div class="sc-hdr" style="background:'+(hBg||nB(nps))+';color:'+(hT||nT(nps))+'">'+lbl+'</div><div class="sc-body"><div class="sc-nps" style="color:'+nC(nps)+'">'+sg(nps)+nps+'</div><div class="sc-lbl">NPS Score</div></div><div class="sc-bar"><div style="width:'+pP+'%;background:#1D9E75"></div><div style="width:'+paP+'%;background:#8A9BB0"></div><div style="width:'+dP+'%;background:#D63B3B"></div></div><div class="sc-row" style="background:#EAF3DE"><span style="color:#27500A">Promoters (9-10)</span><span style="color:#27500A;font-weight:500">'+p.toLocaleString()+'  '+pP+'%</span></div><div class="sc-row"><span style="color:#5A6E85">Passives (7-8)</span><span style="color:#5A6E85">'+pa.toLocaleString()+'  '+paP+'%</span></div><div class="sc-row" style="background:#FCEBEB"><span style="color:#791F1F">Detractors (0-6)</span><span style="color:#791F1F;font-weight:500">'+d.toLocaleString()+'  '+dP+'%</span></div></div>';}
+let _zData=[];
+function buildChart(){const canvas=document.getElementById("zoneChart");if(!canvas)return;if(chartInst){chartInst.destroy();chartInst=null;}chartInst=new Chart(canvas,{type:"bar",data:{labels:_zData.map(z=>z.z),datasets:[{label:"Delivery",data:_zData.map(z=>z.d),backgroundColor:"#378ADD",borderRadius:2},{label:"Installation",data:_zData.map(z=>z.i),backgroundColor:"#1D9E75",borderRadius:2},{label:"Repair",data:_zData.map(z=>z.r),backgroundColor:"#028090",borderRadius:2},{label:"Service",data:_zData.map(z=>z.s),backgroundColor:"#BA7517",borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{min:-40,max:100,ticks:{font:{size:10},callback:v=>(v>=0?"+":"")+v},grid:{color:"#EEEEEE"}}}}});}
+function vt(title,vlist,isGood){const list=isGood?[...vlist].reverse().slice(0,5):vlist.slice(0,5);const hBg=isGood?"#EAF3DE":"#FCEBEB",hC=isGood?"#27500A":"#791F1F";if(!list.length)return'<div class="vtbl-wrap"><div class="vtbl-hdr" style="background:'+hBg+';color:'+hC+'">'+title+'</div><div style="padding:12px;font-size:11px;color:#5A6E85">Not enough data (min 10 responses).</div></div>';let rows="";list.forEach(v=>{rows+='<tr><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+v.v+'</td><td class="c"><span class="pill" style="background:'+(v.nps<0?"#FCEBEB":"#EAF3DE")+';color:'+(v.nps<0?"#791F1F":"#27500A")+'">'+v.z+'</span></td><td class="c" style="color:#5A6E85">'+v.n+'</td><td class="c">'+pill(v.nps)+'</td></tr>';});return'<div class="vtbl-wrap"><div class="vtbl-hdr" style="background:'+hBg+';color:'+hC+'">'+title+'</div><table class="vtbl"><thead><tr><th>Vendor Name</th><th class="c">Zone</th><th class="c">n</th><th class="c">NPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';}
+function catCol(name,items,bg,txt){return'<div class="cat-col"><div class="cat-hdr" style="background:'+bg+';color:'+txt+'">'+name+'</div>'+items.map(t=>'<div class="cat-item">'+t+'</div>').join("")+'</div>';}
+function gz(zData,zone,key){const z=zData.find(x=>x.z===zone);return z&&z[key]!==null?(z[key]>=0?"+":"")+z[key]:"—";}
+function buildAll(d){
+  _zData=d.zData;
+  const{iP,del,ins,rep,svc,zData,rV,sV}=d;
+  document.getElementById("s1").innerHTML='<div class="slide-header"><div><div class="slide-title">Reliance Digital - NPS Overview</div><div style="font-size:12px;color:#5A6E85;margin-top:2px">Customer Experience Dashboard - Installation - Repair - Service</div></div><div class="slide-owner">Owner: Prerna Tiwari</div></div><div class="sc3">'+sc("Installation",iP,"#D6F0EB","#1D6B57")+sc("Repair",rep,"#D6F0EB","#1D6B57")+sc("Service",svc,"#FCF0DC","#7A4F0A")+'</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Touchpoint</th><th class="c">Responses</th><th class="c">Promoters</th><th class="c">Passives</th><th class="c">Detractors</th></tr></thead><tbody><tr><td><b>Installation</b></td><td class="c">'+iP.t.toLocaleString()+'</td><td class="c" style="color:#27500A;font-weight:500">'+iP.p.toLocaleString()+' ('+iP.pP+'%)</td><td class="c" style="color:#5A6E85">'+iP.pa.toLocaleString()+' ('+iP.paP+'%)</td><td class="c" style="color:#791F1F;font-weight:500">'+iP.d.toLocaleString()+' ('+iP.dP+'%)</td></tr><tr><td><b>Repair</b></td><td class="c">'+rep.t.toLocaleString()+'</td><td class="c" style="color:#27500A;font-weight:500">'+rep.p.toLocaleString()+' ('+rep.pP+'%)</td><td class="c" style="color:#5A6E85">'+rep.pa.toLocaleString()+' ('+rep.paP+'%)</td><td class="c" style="color:#791F1F;font-weight:500">'+rep.d.toLocaleString()+' ('+rep.dP+'%)</td></tr><tr><td><b>Service</b></td><td class="c">'+svc.t.toLocaleString()+'</td><td class="c" style="color:#27500A;font-weight:500">'+svc.p.toLocaleString()+' ('+svc.pP+'%)</td><td class="c" style="color:#5A6E85">'+svc.pa.toLocaleString()+' ('+svc.paP+'%)</td><td class="c" style="color:#791F1F;font-weight:500">'+svc.d.toLocaleString()+' ('+svc.dP+'%)</td></tr></tbody></table></div><div class="src">Source: Reliance Digital raw survey data - Primary recommendation question - HIGHLY CONFIDENTIAL - Management Review</div>';
+  document.getElementById("s2").innerHTML='<div class="slide-header"><div><div class="slide-title">NPS - Reliance Digital | Installation - Repair - Service</div><div style="font-size:12px;color:#5A6E85;margin-top:2px">How likely are you to recommend Reliance ResQ to your friends and Family in the following category</div></div><div class="slide-owner">Owner: Prerna Tiwari</div></div><div class="sc3">'+sc("Installation ("+iP.t.toLocaleString()+")",iP,"#D6F0EB","#1D6B57")+sc("Repair ("+rep.t.toLocaleString()+")",rep,"#D6F0EB","#1D6B57")+sc("Service ("+svc.t.toLocaleString()+")",svc,"#FCF0DC","#7A4F0A")+'</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Touchpoint</th><th class="c">Responses</th><th class="c">Promoters</th><th class="c">Passives</th><th class="c">Detractors</th></tr></thead><tbody><tr><td><b>Installation</b></td><td class="c">'+iP.t.toLocaleString()+'</td><td class="c" style="color:#27500A;font-weight:500">'+iP.p.toLocaleString()+' ('+iP.pP+'%)</td><td class="c" style="color:#5A6E85">'+iP.pa.toLocaleString()+' ('+iP.paP+'%)</td><td class="c" style="color:#791F1F;font-weight:500">'+iP.d.toLocaleString()+' ('+iP.dP+'%)</td></tr><tr><td><b>Repair</b></td><td class="c">'+rep.t.toLocaleString()+'</td><td class="c" style="color:#27500A;font-weight:500">'+rep.p.toLocaleString()+' ('+rep.pP+'%)</td><td class="c" style="color:#5A6E85">'+rep.pa.toLocaleString()+' ('+rep.paP+'%)</td><td class="c" style="color:#791F1F;font-weight:500">'+rep.d.toLocaleString()+' ('+rep.dP+'%)</td></tr><tr><td><b>Service</b></td><td class="c">'+svc.t.toLocaleString()+'</td><td class="c" style="color:#27500A;font-weight:500">'+svc.p.toLocaleString()+' ('+svc.pP+'%)</td><td class="c" style="color:#5A6E85">'+svc.pa.toLocaleString()+' ('+svc.paP+'%)</td><td class="c" style="color:#791F1F;font-weight:500">'+svc.d.toLocaleString()+' ('+svc.dP+'%)</td></tr></tbody></table></div><div class="src">Source: Reliance Digital raw survey data - Primary recommendation question - HIGHLY CONFIDENTIAL - Management Review</div>';
+  const defs=[{l:"Delivery",t:" - Whether the product arrived on the customer's preferred date, in good condition, with a courteous and communicative delivery team."},{l:"Installation",t:" - Whether the installation expert arrived on time, completed the job, conducted a proper demo, carried the right tools, and behaved professionally."},{l:"Repair",t:" - Whether the repair was completed in one visit, on schedule, by a technically sound expert who kept the customer informed and resolved the issue without repeat calls."},{l:"Service",t:" - Whether the scheduled maintenance visit (predominantly AC servicing) was completed on time, by a skilled and professional technician who proactively communicated any delays."}];
+  const mini4=[{l:"Delivery NPS",nps:del?del.nps:null,n:del?del.t:0,pP:del?del.pP:0,col:"#378ADD"},{l:"Installation NPS",nps:ins?ins.nps:null,n:ins?ins.t:0,pP:ins?ins.pP:0,col:"#1D9E75"},{l:"Repair NPS",nps:rep?rep.nps:null,n:rep?rep.t:0,pP:rep?rep.pP:0,col:"#028090"},{l:"Service NPS",nps:svc?svc.nps:null,n:svc?svc.t:0,pP:svc?svc.pP:0,col:"#BA7517"}];
+  const ztRows=zData.map(z=>'<tr><td>'+z.z+'</td>'+[z.d,z.i,z.r,z.s].map(v=>'<td class="c">'+(v!==null?pill(v):'<span style="color:#DEE4EE">-</span>')+'</td>').join("")+'</tr>').join("");
+  document.getElementById("s3").innerHTML='<div class="slide-header"><div><div class="slide-title">NPS - Reliance Digital | All 4 Touchpoints by Zone</div></div><div class="slide-owner">Owner: Prerna Tiwari</div></div><div style="margin-bottom:14px">'+defs.map(d=>'<div style="font-size:12px;color:#3A4F66;line-height:1.6;margin-bottom:4px"><b style="color:#0F2044">'+d.l+'</b>'+d.t+'</div>').join("")+'</div><div class="mini4">'+mini4.map(m=>'<div class="mini-card"><div class="mini-lbl"><span class="mini-dot" style="background:'+m.col+'"></span>'+m.l+'</div><div class="mini-nps" style="color:'+(m.nps===null?"#DEE4EE":"#0F2044")+'">'+(m.nps===null?"-":(m.nps>=0?"+":"")+m.nps)+'</div><div style="font-size:10px;color:#8A9BB0;margin-top:4px">'+m.n.toLocaleString()+' responses - '+m.pP+'% promoters</div><div style="height:2px;border-radius:1px;margin-top:10px;background:'+m.col+'"></div></div>').join("")+'</div><div class="chart-wrap"><div class="chart-legend"><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Delivery</div><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Installation</div><div class="leg-item"><div class="leg-dot" style="background:#028090"></div>Repair</div><div class="leg-item"><div class="leg-dot" style="background:#BA7517"></div>Service</div></div><div style="position:relative;height:260px"><canvas id="zoneChart"></canvas></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Zone</th><th class="c" style="background:#378ADD">Delivery</th><th class="c" style="background:#1D9E75">Installation</th><th class="c" style="background:#028090">Repair</th><th class="c" style="background:#BA7517">Service</th></tr></thead><tbody>'+ztRows+'</tbody></table></div><div class="src">Source: Reliance Digital raw survey data - Delivery and Installation from sub-rating questions; Repair and Service from primary NPS question - CONFIDENTIAL</div>';
+  const ww=[{n:"Delivery",bg:"#E6F1FB",t:"#0C447C",items:["Delivery NPS is +"+(del?del.nps:"—")+" — strong first touchpoint, "+(del?del.pP:"—")+"% promoters across "+(del?del.t.toLocaleString():"—")+" responses","SOUTH-3 leads at "+gz(zData,"SOUTH-3","d")+" on delivery — consistent with highest zone performance","Every zone is positive on delivery; WEST ("+gz(zData,"WEST","d")+") lowest but no negatives anywhere"]},{n:"Installation",bg:"#EAF3DE",t:"#27500A",items:["Installation NPS +"+(ins?ins.nps:"—")+" — nearly on par with delivery, technician quality strong","SOUTH-3 at "+gz(zData,"SOUTH-3","i")+" — best zone across both pre-visit touchpoints","Demo quality and punctuality remain top promoter drivers"]},{n:"Repair",bg:"#E1F5EE",t:"#085041",items:["EAST ("+gz(zData,"EAST","r")+") and NORTH-2 ("+gz(zData,"NORTH-2","r")+") are standout repair zones","Top vendors in NORTH-2 and CENTRAL score +100 — replicable best practice model"]},{n:"Service",bg:"#FAEEDA",t:"#633806",items:["Service NPS +"+(svc?svc.nps:"—")+" — EAST leads at "+gz(zData,"EAST","s"),"Top service vendors in EAST sustain 88-100 NPS — Home Cure Service and Digilink Kolkata anchor excellence"]},{n:"Zone",bg:"#EEEDFE",t:"#3C3489",items:["EAST is the most consistent zone — top performer on Repair and Service","SOUTH-3 leads on Delivery and Installation — strong pre-visit experience"]}];
+  document.getElementById("s4").innerHTML='<div class="slide-header"><div><div class="slide-title">NPS - Reliance Digital - What went well</div></div><div class="slide-owner">Owner: Prerna Tiwari</div></div><div class="findings-grid">'+ww.map(c=>catCol(c.n,c.items,c.bg,c.t)).join("")+'</div><div class="src">Confidential - Management Review</div>';
+  const ni=[{n:"Delivery",bg:"#E6F1FB",t:"#0C447C",items:["WEST weakest on delivery at "+gz(zData,"WEST","d")+" — combined with installation at "+gz(zData,"WEST","i")+", WEST shows a weak start to entire customer journey","SOUTH-1 delivery ("+gz(zData,"SOUTH-1","d")+") falls behind SOUTH-3 ("+gz(zData,"SOUTH-3","d")+") — inconsistent vendor quality within South region"]},{n:"Installation",bg:"#EAF3DE",t:"#27500A",items:["WEST installation at "+gz(zData,"WEST","i")+" is the lowest zone — tools not carried, delayed visits, incomplete demos","NORTH-1 drops from delivery ("+gz(zData,"NORTH-1","d")+") to installation ("+gz(zData,"NORTH-1","i")+") — technician quality lags delivery"]},{n:"Repair",bg:"#FCEBEB",t:"#791F1F",items:["NORTH-1 repair NPS is "+gz(zData,"NORTH-1","r")+" — near-zero; same Delhi/NCR vendors responsible","Outlier vendors score -90 and below — urgent review needed in SOUTH-1 and NORTH-1","SOUTH-1 ("+gz(zData,"SOUTH-1","r")+") and SOUTH-2 ("+gz(zData,"SOUTH-2","r")+") are danger zones — both below the +40 threshold"]},{n:"Service",bg:"#FAEEDA",t:"#633806",items:["T54D-Am Services Greater Noida scores -100 on service — all respondents detractors; NORTH-1","SOUTH-2 service at "+gz(zData,"SOUTH-2","s")+" — significant drop vs delivery ("+gz(zData,"SOUTH-2","d")+"); post-installation deterioration visible"]},{n:"Zone",bg:"#EEEDFE",t:"#3C3489",items:["NORTH-1 remains most troubled — Repair "+gz(zData,"NORTH-1","r")+", Service "+gz(zData,"NORTH-1","s")+" — improvement vs prior but still critical","WEST systemic quality gap across all four touchpoints — no zone scoring above "+gz(zData,"WEST","d")]}];
+  document.getElementById("s5").innerHTML='<div class="slide-header"><div><div class="slide-title">NPS - Reliance Digital - What needs improvement</div></div><div class="slide-owner">Owner: Prerna Tiwari</div></div><div class="findings-grid">'+ni.map(c=>catCol(c.n,c.items,c.bg,c.t)).join("")+'</div><div class="src">Confidential - Management Review</div>';
+  document.getElementById("s6").innerHTML='<div class="slide-header"><div><div class="slide-title">NPS - Reliance Digital - Outliers: Vendor and Region</div></div><div class="slide-owner">Owner: Prerna Tiwari</div></div><div class="alert-bar">Warning: NORTH-1 vendors dominate bottom lists on Repair. T54D-Am Services Greater Noida scores -100 on Service (all respondents are detractors). Immediate review required.</div><div class="vendor2">'+vt("Repair - Bottom 5 Vendors",rV,false)+vt("Repair - Top 5 Vendors",rV,true)+'</div><div class="vendor2">'+vt("Service - Bottom 5 Vendors",sV,false)+vt("Service - Top 5 Vendors",sV,true)+'</div><div class="src">Confidential - Management Review</div>';
+  setTimeout(buildChart,200);
+}
 </script>
 </body>
 </html>
